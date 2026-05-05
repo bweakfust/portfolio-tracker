@@ -3,13 +3,14 @@
 ## Opstarten
 
 ```bash
-python3 -m streamlit run app.py
+cd app
+.venv/bin/streamlit run app.py
 # → http://localhost:8501
 ```
 
-**Dependencies installeren (eenmalig):**
+**Installeren (eenmalig):**
 ```bash
-python3 -m pip install -r requirements.txt
+bash install.sh
 ```
 
 ---
@@ -118,26 +119,27 @@ Alleen voor posities met bekende huidige prijs. Posities zonder oplosbare ticker
 
 ```
 portfolio-tracker/
-├── install.sh / install.bat  # installatie (eenmalig uitvoeren)
-├── start.sh / start.bat      # app starten (aangemaakt na installatie)
+├── install.sh / install.bat               # installatie (eenmalig uitvoeren)
+├── Portfolio Tracker starten.command      # app starten Mac (aangemaakt na installatie)
+├── start.bat                              # app starten Windows (aangemaakt na installatie)
 ├── README.md
-├── CLAUDE.md                 # dit bestand
-└── app/                      # interne bestanden
-    ├── app.py                # Streamlit entry point
+├── CLAUDE.md                              # dit bestand
+└── app/                                   # interne bestanden
+    ├── app.py                             # Streamlit entry point
     ├── requirements.txt
     ├── src/
-    │   ├── parser.py         # DEGIRO CSV parser (nieuw + oud formaat)
-    │   ├── ticker_resolver.py# ISIN + Beurs → yfinance ticker via OpenFIGI
-    │   ├── prices.py         # koersen ophalen, EUR-conversie, parquet cache
-    │   ├── portfolio.py      # posities (FIFO), history, Modified Dietz, metrics
-    │   └── charts.py         # Plotly charts (dark theme)
+    │   ├── parser.py                      # DEGIRO CSV parser (nieuw + oud formaat)
+    │   ├── ticker_resolver.py             # ISIN + Beurs → yfinance ticker via OpenFIGI
+    │   ├── prices.py                      # koersen ophalen, EUR-conversie, parquet cache
+    │   ├── portfolio.py                   # posities (FIFO), history, Modified Dietz, metrics
+    │   └── charts.py                      # Plotly charts (dark theme)
     ├── cache/
-    │   ├── ticker_map_auto.json      # automatisch opgeloste ISIN→ticker mappings
-    │   ├── ticker_map_override.json  # handmatige correcties (prioriteit boven auto)
-    │   └── px_*.parquet              # gecachede koersdata per ticker
+    │   ├── ticker_map_auto.json           # automatisch opgeloste ISIN→ticker mappings (gitignored)
+    │   ├── ticker_map_override.json       # handmatige correcties (gitignored)
+    │   └── px_*.parquet                   # gecachede koersdata per ticker (gitignored)
     └── data/
-        ├── last_upload.csv       # laatste geüploade CSV (automatisch opgeslagen)
-        └── last_upload_meta.json # bestandsnaam + datum van upload
+        ├── last_upload.csv                # laatste geüploade CSV (gitignored)
+        └── last_upload_meta.json          # bestandsnaam + datum van upload (gitignored)
 ```
 
 ---
@@ -171,6 +173,21 @@ DEGIRO-exports bevatten geen ticker-symbolen, alleen ISIN + Beurs-code.
 - Bij herstart laadt de app automatisch de laatste upload — geen re-upload nodig
 - Koersdata gecacht als parquet in `cache/px_*.parquet` (verloopt na 20 uur)
 - Knop "Prijzen verversen" in de sidebar wist de parquet-cache
+
+---
+
+## GitHub workflow
+
+```bash
+# Wijzigingen pushen
+git add .
+git commit -m "Omschrijving"
+git push
+
+# Repo: https://github.com/bweakfust/portfolio-tracker
+```
+
+Wat **niet** in git staat (gitignored): `app/data/`, `app/cache/ticker_map_*.json`, `app/cache/px_*.parquet`, `.venv/`, `*.command`, `start.bat`.
 
 ---
 
