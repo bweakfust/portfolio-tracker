@@ -1,0 +1,19 @@
+# Persoonlijke data — nooit publiek
+app/data/
+app/cache/px_*.parquet
+app/cache/ticker_map_auto.json
+app/cache/ticker_map_override.json
+
+# Gegenereerd door install script
+app/.venv/
+start.sh
+start.bat
+
+# OS rommel
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
