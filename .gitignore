@@ -8,6 +8,7 @@ app/cache/ticker_map_override.json
 app/.venv/
 start.sh
 start.bat
+*.command
 
 # OS rommel
 .DS_Store

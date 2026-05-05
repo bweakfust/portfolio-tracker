@@ -496,12 +496,13 @@ def allocation_table_html(
     current_prices_eur: dict,
     period_start,          # pd.Timestamp — start van het geselecteerde tijdsframe
     timeframe: str,
+    transactions=None,
 ) -> str:
     """Render positions as a styled HTML table.
-    Gain column reflects the selected timeframe (price return over the period).
+    Gain column reflects the selected timeframe using Modified Dietz per stock:
+      P&L = waarde_nu - (aandelen_begin × start_prijs) - netto_aankopen_in_periode
     For 'Alles': shows all-time unrealized P&L.
     """
-    import pandas as pd
 
     df = (
         pos_df[pos_df["Waarde (€)"] > 0]
@@ -515,8 +516,6 @@ def allocation_table_html(
     total = df["Waarde (€)"].sum()
     gain_label = "Winst" if timeframe == "Alles" else f"Winst ({timeframe})"
 
-    # Build ISIN → (gain_eur, gain_pct) lookup for the period
-    isin_to_ticker = {v: k for k, v in ticker_map.items() if v}  # ticker → isin
     period_gains: dict[str, tuple] = {}  # isin → (gain_eur, gain_pct)
 
     for _, row in df.iterrows():
@@ -524,7 +523,6 @@ def allocation_table_html(
         ticker = ticker_map.get(isin)
 
         if timeframe == "Alles" or not ticker or ticker not in all_prices:
-            # Fall back to all-time unrealized P&L
             period_gains[isin] = (row["Ongerealiseerd (€)"], row["Ongerealiseerd (%)"])
             continue
 
@@ -534,7 +532,7 @@ def allocation_table_html(
             period_gains[isin] = (row["Ongerealiseerd (€)"], row["Ongerealiseerd (%)"])
             continue
 
-        # Last available price at or before period start
+        # Prijs aan begin van de periode
         before = price_series[price_series.index <= period_start]
         if before.empty:
             period_gains[isin] = (row["Ongerealiseerd (€)"], row["Ongerealiseerd (%)"])
@@ -545,11 +543,33 @@ def allocation_table_html(
             period_gains[isin] = (row["Ongerealiseerd (€)"], row["Ongerealiseerd (%)"])
             continue
 
-        gain_pct = (current_price / start_price - 1) * 100
-        # Approximate € gain for current holding: shares × price_change
-        # shares ≈ current_value / current_price
-        shares = row["Waarde (€)"] / current_price
-        gain_eur = shares * (current_price - start_price)
+        # Aandelen die de gebruiker aan begin van de periode al had
+        if transactions is not None:
+            tx_isin = transactions[transactions["isin"] == isin].copy()
+            tx_isin["date"] = pd.to_datetime(tx_isin["date"])
+            tx_before = tx_isin[tx_isin["date"] <= period_start]
+            shares_at_start = sum(
+                r["quantity"] if r["action"] == "buy" else -r["quantity"]
+                for _, r in tx_before.iterrows()
+            )
+            shares_at_start = max(shares_at_start, 0.0)
+
+            # Netto aankopen in de periode (kopen - verkopen in EUR)
+            tx_during = tx_isin[tx_isin["date"] > period_start]
+            net_cf = sum(
+                r["amount_eur"] if r["action"] == "buy" else -r["amount_eur"]
+                for _, r in tx_during.iterrows()
+            )
+        else:
+            shares_at_start = row["Waarde (€)"] / current_price
+            net_cf = 0.0
+
+        value_start = shares_at_start * start_price
+        value_end   = row["Waarde (€)"]
+
+        gain_eur = value_end - value_start - net_cf
+        denom    = value_start + net_cf if (value_start + net_cf) > 0 else value_start
+        gain_pct = (gain_eur / denom * 100) if denom > 0 else 0.0
         period_gains[isin] = (gain_eur, gain_pct)
 
     rows = ""
@@ -1025,6 +1045,7 @@ with tab3:
                     current_prices_eur,
                     period_start,
                     timeframe,
+                    transactions=transactions,
                 ),
                 unsafe_allow_html=True,
             )

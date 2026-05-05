@@ -30,7 +30,7 @@ bash install.sh
 
 ### Stap 3 — Start de app
 
-**Mac / Linux:** dubbelklik op `start.sh`
+**Mac:** dubbelklik op `Portfolio Tracker starten.command` in Finder
 **Windows:** dubbelklik op `start.bat`
 
 De app opent op [http://localhost:8501](http://localhost:8501)

@@ -97,7 +97,7 @@ echo "✅  Alle packages geïnstalleerd."
 mkdir -p "$APP_DIR/cache" "$APP_DIR/data"
 
 # ── Launch-script aanmaken ────────────────────────────────────────────────────
-cat > "$ROOT_DIR/start.sh" << EOF
+cat > "$ROOT_DIR/Portfolio Tracker starten.command" << EOF
 #!/bin/bash
 cd "\$(dirname "\$0")/app"
 echo "🚀  Portfolio Tracker starten..."
@@ -106,13 +106,12 @@ echo "    Stoppen: druk Ctrl+C"
 echo ""
 .venv/bin/streamlit run app.py --server.headless true
 EOF
-chmod +x "$ROOT_DIR/start.sh"
+chmod +x "$ROOT_DIR/Portfolio Tracker starten.command"
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
 echo "║       ✅  Installatie geslaagd!          ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
-echo "  Starten:  bash start.sh"
-echo "  Of dubbelklik op start.sh in Finder"
+echo "  Dubbelklik op 'Portfolio Tracker starten.command' in Finder"
 echo ""
